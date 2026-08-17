@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PatentLens AI — Search the world's patents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Deep aubergine-ink base with an electric-violet "search beam" and an amber "patent seal" accent */
+    --bg:#100B1C; --panel:#181228; --panel-2:#1E1733; --line:#2E2748;
+    --ink:#ECE8F8; --ink-dim:#9A90B8; --ink-faint:#655C82;
+    --cyan:#8B6BFF; --cyan-dim:rgba(139,107,255,.18);
+    --gold:#E8A33D; --gold-dim:rgba(232,163,61,.20);
+    --radius:14px; --radius-sm:9px;
+    --serif:'Fraunces',Georgia,'Iowan Old Style',serif;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    --mono:'JetBrains Mono','SF Mono','Roboto Mono',monospace;
+  }
+  html[data-theme="light"]{
+    --bg:#FAF7FF; --panel:#FFFFFF; --panel-2:#F4EFFC; --line:#E2D8F5;
+    --ink:#1C1430; --ink-dim:#59507A; --ink-faint:#8B81A8;
+    --cyan:#6A3FE0; --cyan-dim:rgba(106,63,224,.10);
+    --gold:#B5791E; --gold-dim:rgba(181,121,30,.13);
+  }
+  *{box-sizing:border-box;min-width:0;}
+  html{-webkit-text-size-adjust:100%;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);transition:background .35s ease,color .35s ease;overflow-x:hidden;}
+  h1,h2,h3,p,span,div{overflow-wrap:break-word;word-break:break-word;}
+  img,svg{max-width:100%;}
+  a{color:inherit;}
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:2px;}
+  ::selection{background:var(--cyan-dim);}
+
+  .app-shell{max-width:1180px;margin:0 auto;min-height:100vh;transition:max-width .35s ease, box-shadow .35s ease;}
+  .app-shell.mobile-frame{max-width:400px;margin:24px auto;border:1px solid var(--line);border-radius:32px;box-shadow:0 0 0 6px var(--panel),0 30px 80px rgba(0,0,0,.45);overflow:hidden;padding-bottom:8px;}
+  .app-shell.mobile-frame .hero{padding:28px 18px 20px;}
+  .app-shell.mobile-frame .hero-grid{grid-template-columns:1fr;}
+  .app-shell.mobile-frame .hero-signature{display:none;}
+  .app-shell.mobile-frame nav{padding:14px 16px;flex-wrap:wrap;gap:10px;}
+  .app-shell.mobile-frame h1{font-size:clamp(24px,7vw,30px);}
+  .app-shell.mobile-frame .hero p.sub{font-size:14px;max-width:none;}
+  .app-shell.mobile-frame .search-box{flex-wrap:wrap;padding:5px 5px 5px 14px;}
+  .app-shell.mobile-frame .search-box input{width:100%;min-width:0;}
+  .app-shell.mobile-frame .search-btn{width:100%;justify-content:center;text-align:center;}
+  .app-shell.mobile-frame .landscape{padding:0 16px 8px;}
+  .app-shell.mobile-frame .results{padding:8px 16px 40px;}
+  .app-shell.mobile-frame .card-grid{grid-template-columns:1fr!important;}
+  .app-shell.mobile-frame .card-main{grid-template-columns:1fr!important;gap:12px;padding:14px;}
+  .app-shell.mobile-frame .card-figure{width:100%;height:110px;}
+  .app-shell.mobile-frame .card-score{flex-direction:row;justify-content:space-between;align-items:center;width:100%;}
+  .app-shell.mobile-frame .card-actions{padding:0 14px 12px;flex-wrap:wrap;}
+  .app-shell.mobile-frame .detail{grid-template-columns:1fr!important;margin:0 14px;}
+  .app-shell.mobile-frame .landscape-inner{grid-template-columns:1fr;padding:16px;}
+  .app-shell.mobile-frame footer{padding:22px 16px 30px;flex-direction:column;}
+
+  nav{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;border-bottom:1px solid var(--line);}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:.2px;}
+  .brand svg{filter:drop-shadow(0 0 6px var(--cyan-dim));}
+  .nav-controls{display:flex;align-items:center;gap:8px;}
+  .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink-dim);transition:box-shadow .2s,color .2s,border-color .2s;}
+  .icon-btn:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px var(--cyan-dim);}
+  .icon-btn.active{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px var(--cyan-dim);}
+  .seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  .seg .icon-btn{border:none;border-radius:0;}
+  .seg .icon-btn+.icon-btn{border-left:1px solid var(--line);}
+  .lang-badge{display:flex;align-items:center;gap:6px;padding:0 12px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);font-family:var(--mono);font-size:12.5px;color:var(--gold);cursor:pointer;transition:box-shadow .2s;}
+  .lang-badge:hover{box-shadow:0 0 14px var(--gold-dim);}
+
+  .hero{padding:64px 28px 36px;position:relative;}
+  .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:center;}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);margin:0 0 14px;}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(30px,4vw,44px);line-height:1.12;margin:0 0 16px;letter-spacing:-.01em;}
+  .hero p.sub{color:var(--ink-dim);font-size:16px;line-height:1.6;max-width:46ch;margin:0 0 28px;}
+  .search-wrap{position:relative;}
+  .search-box{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:6px 6px 6px 18px;transition:box-shadow .25s,border-color .25s;}
+  .search-box:focus-within{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan),0 0 26px var(--cyan-dim);}
+  .search-box input{flex:1;background:transparent;border:none;outline:none;color:var(--ink);font-family:var(--sans);font-size:15.5px;padding:12px 0;}
+  .search-box input::placeholder{color:var(--ink-faint);}
+  .search-btn{background:var(--cyan);color:#08110F;border:none;font-weight:600;font-size:14px;padding:12px 20px;border-radius:10px;cursor:pointer;white-space:nowrap;transition:filter .2s,box-shadow .2s;}
+  .search-btn:hover{filter:brightness(1.08);box-shadow:0 0 20px var(--cyan-dim);}
+  
+  .autocomplete{position:absolute;top:calc(100% + 8px);left:0;right:0;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;z-index:20;box-shadow:0 18px 40px rgba(0,0,0,.35);}
+  .autocomplete .ac-item{padding:11px 16px;font-size:14.5px;color:var(--ink-dim);cursor:pointer;display:flex;gap:8px;}
+  .autocomplete .ac-item mark{background:none;color:var(--ink);font-weight:600;padding:0;}
+  .autocomplete .ac-item:hover,.autocomplete .ac-item.hi{background:var(--cyan-dim);color:var(--ink);}
+  
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;}
+  .chip{font-size:12.5px;color:var(--ink-dim);border:1px solid var(--line);padding:7px 12px;border-radius:100px;cursor:pointer;transition:border-color .2s,color .2s;}
+  .chip:hover{border-color:var(--gold);color:var(--gold);}
+  .chips-label{font-size:12px;color:var(--ink-faint);margin-right:2px;align-self:center;}
+
+  .hero-signature{display:flex;align-items:center;justify-content:center;position:relative;}
+  .sweep-wrap{position:relative;width:100%;max-width:280px;aspect-ratio:1;}
+  .sweep-wrap svg{width:100%;height:100%;overflow:visible;}
+  .sweep-cone{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg, var(--cyan-dim), transparent 26%);animation:rotate 7s linear infinite;mix-blend-mode:screen;}
+  @keyframes rotate{to{transform:rotate(360deg);}}
+  .node-dot{animation:ping 7s ease-in-out infinite;}
+  @keyframes ping{0%,88%,100%{filter:none;}92%{filter:drop-shadow(0 0 6px var(--gold));}}
+
+  @media (max-width:860px){
+    .hero-grid{grid-template-columns:1fr;}
+    .hero-signature{display:none;}
+  }
+
+  @media (max-width:480px){
+    nav{padding:14px 16px;flex-wrap:wrap;gap:10px;}
+    .brand{font-size:16px;}
+    .nav-controls{gap:6px;}
+    .hero{padding:28px 16px 18px;}
+    h1{font-size:clamp(24px,7vw,30px);}
+    .hero p.sub{font-size:14px;max-width:none;}
+    .search-box{padding:5px 5px 5px 14px;flex-wrap:wrap;}
+    .search-box input{width:100%;min-width:0;}
+    .search-btn{width:100%;justify-content:center;text-align:center;}
+    .chips{gap:6px;}
+    .landscape{padding:0 16px 8px;}
+    .landscape-inner{padding:16px;}
+    .results{padding:8px 16px 40px;}
+    .card-main{grid-template-columns:1fr;gap:12px;padding:14px;}
+    .card-figure{width:100%;height:120px;}
+    .card-score{flex-direction:row;justify-content:space-between;align-items:center;width:100%;}
+    .card-actions{padding:0 14px 12px;}
+    .detail{margin:0 14px;padding:4px 0 16px;}
+    .btn{font-size:12px;padding:7px 10px;}
+    .speed-select{flex:1;min-width:80px;}
+    footer{padding:22px 16px 30px;flex-direction:column;}
+  }
+
+  .landscape{padding:0 28px 8px;}
+  .landscape.hidden{display:none;}
+  .landscape-inner{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px 24px;display:grid;grid-template-columns:1.3fr 1fr;gap:28px;}
+  .panel-title{font-family:var(--serif);font-size:15px;margin:0 0 4px;}
+  .panel-sub{font-size:12.5px;color:var(--ink-faint);margin:0 0 14px;}
+  .juris-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;font-size:12.5px;}
+  .juris-row .jflag{width:20px;text-align:center;}
+  .juris-row .jcode{font-family:var(--mono);color:var(--ink-dim);width:28px;}
+  .juris-bar-track{flex:1;height:7px;background:var(--panel-2);border-radius:6px;overflow:hidden;}
+  .juris-bar-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--gold));border-radius:6px;}
+  .juris-pct{width:34px;text-align:right;color:var(--ink-faint);font-family:var(--mono);font-size:11.5px;}
+
+  .results{padding:8px 28px 60px;}
+  .results-head{display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 14px;}
+  .results-head h2{font-family:var(--serif);font-size:18px;margin:0;font-weight:600;}
+  .results-count{font-size:12.5px;color:var(--ink-faint);font-family:var(--mono);}
+  .empty-note{font-size:13px;color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-dim);padding:10px 14px;border-radius:10px;margin-bottom:14px;}
+
+  .card-grid{display:flex;flex-direction:column;gap:12px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);transition:border-color .2s,box-shadow .2s;}
+  .card:hover{border-color:var(--line);box-shadow:0 0 0 1px var(--line),0 12px 30px rgba(0,0,0,.25);}
+  .card-main{display:grid;grid-template-columns:118px 1fr 96px;gap:18px;padding:16px 18px;align-items:center;}
+  @media (max-width:640px){.card-main{grid-template-columns:1fr;}}
+  .card-figure{width:118px;height:88px;background:var(--panel-2);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .card-figure svg{width:88%;height:88%;}
+  .card-body .num{font-family:var(--mono);font-size:11.5px;color:var(--gold);letter-spacing:.02em;}
+  .card-body h3{font-family:var(--serif);font-size:16px;font-weight:600;margin:4px 0 6px;line-height:1.3;}
+  .card-meta{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:12px;color:var(--ink-faint);margin-bottom:8px;}
+  .card-meta .translated{color:var(--cyan);}
+  .tag-row{display:flex;flex-wrap:wrap;gap:6px;}
+  .tag{font-size:11px;color:var(--ink-dim);background:var(--panel-2);border:1px solid var(--line);padding:3px 9px;border-radius:100px;}
+  .card-score{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+  .score-num{font-family:var(--mono);font-size:19px;color:var(--cyan);font-weight:500;}
+  .score-label{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.06em;}
+  .spark{width:80px;height:24px;}
+
+  .card-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 18px 14px;}
+  .btn{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-dim);background:var(--panel-2);border:1px solid var(--line);padding:7px 12px;border-radius:9px;cursor:pointer;transition:color .2s,border-color .2s,box-shadow .2s;}
+  .btn:hover{color:var(--ink);border-color:var(--cyan);box-shadow:0 0 12px var(--cyan-dim);}
+  .btn.primary{color:var(--cyan);border-color:var(--cyan);}
+  .btn.doc{margin-left:auto;padding:8px;min-width:38px;justify-content:center;}
+  .btn.doc svg{margin:0;}
+  .btn.doc:hover{color:var(--cyan);border-color:var(--cyan);box-shadow:0 0 14px rgba(5,233,255,.18);}
+  .btn.playing{color:var(--gold);border-color:var(--gold);box-shadow:0 0 12px var(--gold-dim);}
+  .speed-select{background:var(--panel-2);border:1px solid var(--line);color:var(--ink-dim);font-size:12px;border-radius:9px;padding:6px 8px;font-family:var(--mono);cursor:pointer;}
+
+  .detail-wrap{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s ease;}
+  .detail-wrap.open{grid-template-rows:1fr;}
+  .detail-inner{overflow:hidden;}
+  .detail{display:grid;grid-template-columns:180px 1fr;gap:20px;padding:4px 18px 20px;border-top:1px solid var(--line);margin:0 18px;}
+  @media (max-width:640px){.detail{grid-template-columns:1fr;}}
+  .detail-figure{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;padding:10px;height:150px;}
+  .detail-figure svg{width:100%;height:100%;}
+  .fig-caption{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);text-align:center;margin-top:6px;}
+  .summary-box{font-size:14px;line-height:1.7;color:var(--ink);min-height:64px;}
+  .summary-box.loading{color:var(--ink-faint);font-style:italic;}
+  .summary-box .ln{margin:0 0 4px;}
+  .dot-flash::after{content:'';display:inline-block;width:6px;}
+
+  /* Patent link — circled arrow under the figure, right-aligned */
+  .fig-link-row{display:flex;justify-content:flex-end;margin-top:8px;}
+  .fig-link-arrow{position:relative;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--panel);display:flex;align-items:center;justify-content:center;color:var(--cyan);text-decoration:none;cursor:pointer;transition:box-shadow .2s,border-color .2s,transform .2s;}
+  .fig-link-arrow:hover{border-color:var(--cyan);box-shadow:0 0 14px var(--cyan-dim);transform:translateX(2px);}
+  .fig-link-arrow::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 8px);right:0;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);font-size:11px;white-space:nowrap;padding:5px 9px;border-radius:7px;opacity:0;pointer-events:none;transform:translateY(4px);transition:opacity .18s,transform .18s;box-shadow:0 8px 20px rgba(0,0,0,.3);}
+  .fig-link-arrow:hover::after{opacity:1;transform:translateY(0);}
+
+  /* Authenticity badge */
+  .verify-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:2px 8px 2px 6px;border-radius:100px;font-family:var(--mono);}
+  .verify-badge.ok{color:var(--cyan);background:var(--cyan-dim);border:1px solid var(--cyan-dim);}
+  .verify-badge.warn{color:var(--gold);background:var(--gold-dim);border:1px solid var(--gold-dim);}
+
+  /* Pie chart */
+  .pie-wrap{display:flex;align-items:center;gap:18px;}
+  .pie-svg{flex:none;width:112px;height:112px;}
+  .pie-legend{flex:1;display:flex;flex-direction:column;gap:7px;min-width:0;}
+  .pie-legend-row{display:flex;align-items:center;gap:8px;font-size:12px;}
+  .pie-legend-row .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .pie-legend-row .jname{color:var(--ink-dim);flex:1;font-family:var(--mono);}
+  .pie-legend-row .jpct{color:var(--ink-faint);font-family:var(--mono);}
+
+  /* Country dropdown */
+  .country-select-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .country-select-row label{font-size:11.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em;}
+  .country-select{flex:1;background:var(--panel-2);border:1px solid var(--line);color:var(--ink);font-size:12.5px;border-radius:9px;padding:7px 10px;font-family:var(--mono);cursor:pointer;}
+  .country-select:focus{border-color:var(--cyan);}
+
+  footer{padding:30px 28px 40px;border-top:1px solid var(--line);color:var(--ink-faint);font-size:12px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+
+  /* SKELETON */
+  .skel{background:linear-gradient(90deg,var(--panel-2) 25%,var(--panel) 37%,var(--panel-2) 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;border-radius:8px;}
+  @keyframes shimmer{0%{background-position:100% 0;}100%{background-position:0 0;}}
+  .skel-card{height:120px;border-radius:var(--radius);}
+
+  /* ONBOARDING */
+  .overlay{position:fixed;inset:0;background:rgba(4,6,9,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .overlay.hidden{display:none;}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:30px;max-width:400px;width:100%;box-shadow:0 0 60px var(--cyan-dim);}
+  .modal h2{font-family:var(--serif);font-size:21px;margin:0 0 8px;}
+  .modal p{color:var(--ink-dim);font-size:13.5px;line-height:1.6;margin:0 0 22px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12px;color:var(--ink-faint);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
+  .field input,.field select{width:100%;background:var(--panel-2);border:1px solid var(--line);border-radius:9px;padding:11px 12px;color:var(--ink);font-family:var(--sans);font-size:14px;}
+  .field input:focus,.field select:focus{border-color:var(--cyan);}
+  .modal-btn{width:100%;background:var(--cyan);color:#08110F;border:none;font-weight:600;font-size:14.5px;padding:13px;border-radius:10px;cursor:pointer;margin-top:6px;}
+  .modal-btn:hover{filter:brightness(1.08);}
+  .modal-note{font-size:11.5px;color:var(--ink-faint);text-align:center;margin-top:12px;}
+
+  /* TOAST */
+  #toast-root{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:8px;z-index:200;}
+  .toast{background:var(--panel);border:1px solid var(--cyan);color:var(--ink);font-size:13px;padding:11px 16px;border-radius:10px;box-shadow:0 0 20px var(--cyan-dim);animation:toastIn .25s ease;}
+  @keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  @media (prefers-reduced-motion:reduce){
+    .sweep-cone,.node-dot,.skel{animation:none!important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="appShell">
+  <nav>
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="7" stroke="var(--cyan)" stroke-width="2"/><line x1="18" y1="18" x2="24" y2="24" stroke="var(--gold)" stroke-width="2.4" stroke-linecap="round"/></svg>
+      PatentLens <span style="color:var(--ink-faint);font-weight:400;">AI</span>
+    </div>
+    <div class="nav-controls">
+      <div class="lang-badge" id="langBadge" title="Change summary language">EN</div>
+      <div class="seg">
+        <div class="icon-btn active" id="devDesktop" title="Desktop view">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+        </div>
+        <div class="icon-btn" id="devMobile" title="Mobile view">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 19h2"/></svg>
+        </div>
+      </div>
+      <div class="icon-btn" id="themeToggle" title="Toggle dark / light">
+        <svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">AI patent search &amp; summarization</p>
+        <h1>Describe your idea.<br>See who else has filed it.</h1>
+        <p class="sub">Search patents filed across the world's patent offices, get a five-line answer in your language, and have it read back to you.</p>
+        <div class="search-wrap">
+          <div class="search-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ink-faint)" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+            <input id="searchInput" type="text" placeholder="e.g., federated learning on edge devices" autocomplete="off">
+            <button class="search-btn" id="searchBtn">Search patents</button>
+          </div>
+          <div class="autocomplete hidden" id="autocomplete"></div>
+        </div>
+        <div class="chips" id="chips">
+          <span class="chips-label">Try:</span>
+        </div>
+      </div>
+      <div class="hero-signature">
+        <div class="sweep-wrap">
+          <div class="sweep-cone"></div>
+          <svg viewBox="0 0 200 200">
+            <g stroke="var(--line)" stroke-width="1.4">
+              <line x1="100" y1="100" x2="100" y2="26"/>
+              <line x1="100" y1="100" x2="163" y2="62"/>
+              <line x1="100" y1="100" x2="163" y2="138"/>
+              <line x1="100" y1="100" x2="100" y2="174"/>
+              <line x1="100" y1="100" x2="37" y2="138"/>
+              <line x1="100" y1="100" x2="37" y2="62"/>
+            </g>
+            <circle cx="100" cy="100" r="10" fill="var(--panel)" stroke="var(--cyan)" stroke-width="2"/>
+            <g fill="var(--panel)" stroke="var(--gold)" stroke-width="2">
+              <circle class="node-dot" cx="100" cy="26" r="7" style="animation-delay:0s"/>
+              <circle class="node-dot" cx="163" cy="62" r="7" style="animation-delay:1.15s"/>
+              <circle class="node-dot" cx="163" cy="138" r="7" style="animation-delay:2.3s"/>
+              <circle class="node-dot" cx="100" cy="174" r="7" style="animation-delay:3.45s"/>
+              <circle class="node-dot" cx="37" cy="138" r="7" style="animation-delay:4.6s"/>
+              <circle class="node-dot" cx="37" cy="62" r="7" style="animation-delay:5.75s"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landscape hidden" id="landscape"></section>
+
+  <section class="results" id="resultsSection">
+    <div class="results-head hidden" id="resultsHead">
+      <h2>Similar patents worldwide</h2>
+      <span class="results-count" id="resultsCount"></span>
+    </div>
+    <div class="card-grid" id="resultsGrid"></div>
+  </section>
+
+  <footer>
+    <span>PatentLens AI — prototype demo. Figures and filings shown are illustrative sample data, not live patent-office records.</span>
+    <span id="footYear"></span>
+    <span style="width:100%;text-align:center;font-size:10.5px;color:var(--ink-faint);">Prototype developed by Jaival Pandya</span>
+  </footer>
+</div>
+
+<div class="overlay" id="onboardOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Set up your search</h2>
+    <p id="modalSub">Choose the language you'd like patent summaries translated and read aloud in. You can change this anytime.</p>
+    <div class="field">
+      <label for="nameInput">Your name (optional)</label>
+      <input id="nameInput" type="text" placeholder="Please enter your name">
+    </div>
+    <div class="field">
+      <label for="langSelect">Summary language</label>
+      <select id="langSelect"></select>
+    </div>
+    <button class="modal-btn" id="modalSave">Start searching</button>
+    <p class="modal-note">Saved on this device only.</p>
+  </div>
+</div>
+
+<div id="toast-root"></div>
+
+<script>
+(function(){
+
+const LANGS = [
+  {code:'en', name:'English', bcp:'en-US'},
+  {code:'hi', name:'हिंदी', bcp:'hi-IN'},
+  {code:'es', name:'Español', bcp:'es-ES'},
+  {code:'fr', name:'Français', bcp:'fr-FR'},
+  {code:'de', name:'Deutsch', bcp:'de-DE'},
+  {code:'ja', name:'日本語', bcp:'ja-JP'},
+  {code:'ko', name:'한국어', bcp:'ko-KR'},
+  {code:'zh', name:'中文', bcp:'zh-CN'},
+  {code:'ar', name:'العربية', bcp:'ar-SA'},
+  {code:'pt', name:'Português', bcp:'pt-PT'},
+  {code:'it', name:'Italiano', bcp:'it-IT'},
+  {code:'ru', name:'Русский', bcp:'ru-RU'}
+];
+const LANG_MAP = Object.fromEntries(LANGS.map(l=>[l.code,l]));
+const ORIG_NAMES = {en:'English', de:'Deutsch', ja:'日本語', zh:'中文', ko:'한국어', fr:'Français'};
+const JFLAG = {US:'🇺🇸', EP:'🇪🇺', WO:'🌐', JP:'🇯🇵', CN:'🇨🇳', KR:'🇰🇷', IN:'🇮🇳', DE:'🇩🇪', FR:'🇫🇷'};
+const JNAME = {US:'United States', EP:'Europe (EPO)', WO:'WIPO (PCT)', JP:'Japan', CN:'China', KR:'South Korea', IN:'India', DE:'Germany', FR:'France'};
+
+// ---------- UI translation strings (item: page must switch fully, not just the read-aloud accent) ----------
+const UI_STRINGS = {
+  en:{heroLine1:"Describe your idea.",heroLine2:"See who else has filed it.",heroSub:"Search patents filed across the world's patent offices, get a five-line answer in your language, and have it read back to you.",searchPlaceholder:"e.g., federated learning on edge devices",searchBtn:"Search patents",tryLabel:"Try:",resultsHeading:"Similar patents worldwide",filingTrend:"Filing trend",whereFiled:"Where it's being filed",countryLabel:"Filter by country",allCountries:"All countries",readSummary:"Read 5-line summary",copy:"Copy",share:"Share",readAloud:"Read aloud",stop:"Stop",copySummary:"Copy summary",shareSummary:"Share summary",match:"match",verified:"Verified format",unverified:"Unverified format",getKnowledge:"Get more knowledge",searching:"searching…"},
+  hi:{heroLine1:"अपना विचार बताएं।",heroLine2:"देखें किसने पहले ही फाइल किया है।",heroSub:"दुनिया भर के पेटेंट कार्यालयों में दाखिल पेटेंट खोजें, अपनी भाषा में पांच-पंक्ति का उत्तर पाएं, और उसे सुनें।",searchPlaceholder:"जैसे, एज डिवाइस पर फेडरेटेड लर्निंग",searchBtn:"पेटेंट खोजें",tryLabel:"आज़माएं:",resultsHeading:"दुनिया भर के समान पेटेंट",filingTrend:"फाइलिंग रुझान",whereFiled:"कहां फाइल हो रहा है",countryLabel:"देश के अनुसार फ़िल्टर करें",allCountries:"सभी देश",readSummary:"5-पंक्ति सारांश पढ़ें",copy:"कॉपी करें",share:"साझा करें",readAloud:"ज़ोर से पढ़ें",stop:"रोकें",copySummary:"सारांश कॉपी करें",shareSummary:"सारांश साझा करें",match:"मिलान",verified:"सत्यापित प्रारूप",unverified:"असत्यापित प्रारूप",getKnowledge:"अधिक जानकारी पाएं",searching:"खोज हो रही है…"},
+  es:{heroLine1:"Describe tu idea.",heroLine2:"Mira quién más la ha presentado.",heroSub:"Busca patentes presentadas en oficinas de todo el mundo, obtén un resumen de cinco líneas en tu idioma y escúchalo en voz alta.",searchPlaceholder:"p. ej., aprendizaje federado en dispositivos edge",searchBtn:"Buscar patentes",tryLabel:"Prueba:",resultsHeading:"Patentes similares en el mundo",filingTrend:"Tendencia de presentación",whereFiled:"Dónde se está presentando",countryLabel:"Filtrar por país",allCountries:"Todos los países",readSummary:"Leer resumen de 5 líneas",copy:"Copiar",share:"Compartir",readAloud:"Leer en voz alta",stop:"Detener",copySummary:"Copiar resumen",shareSummary:"Compartir resumen",match:"coincidencia",verified:"Formato verificado",unverified:"Formato no verificado",getKnowledge:"Saber más",searching:"buscando…"},
+  fr:{heroLine1:"Décrivez votre idée.",heroLine2:"Voyez qui l'a déjà déposée.",heroSub:"Recherchez des brevets déposés dans le monde entier, obtenez un résumé de cinq lignes dans votre langue et écoutez-le.",searchPlaceholder:"ex. apprentissage fédéré sur appareils edge",searchBtn:"Rechercher des brevets",tryLabel:"Essayez :",resultsHeading:"Brevets similaires dans le monde",filingTrend:"Tendance de dépôt",whereFiled:"Où c'est déposé",countryLabel:"Filtrer par pays",allCountries:"Tous les pays",readSummary:"Lire le résumé en 5 lignes",copy:"Copier",share:"Partager",readAloud:"Lire à voix haute",stop:"Arrêter",copySummary:"Copier le résumé",shareSummary:"Partager le résumé",match:"correspondance",verified:"Format vérifié",unverified:"Format non vérifié",getKnowledge:"En savoir plus",searching:"recherche…"},
+  de:{heroLine1:"Beschreiben Sie Ihre Idee.",heroLine2:"Sehen Sie, wer sie schon angemeldet hat.",heroSub:"Durchsuchen Sie Patente aus Patentämtern weltweit, erhalten Sie eine Fünf-Zeilen-Antwort in Ihrer Sprache und lassen Sie sie vorlesen.",searchPlaceholder:"z. B. föderiertes Lernen auf Edge-Geräten",searchBtn:"Patente durchsuchen",tryLabel:"Testen:",resultsHeading:"Ähnliche Patente weltweit",filingTrend:"Anmeldetrend",whereFiled:"Wo angemeldet wird",countryLabel:"Nach Land filtern",allCountries:"Alle Länder",readSummary:"5-Zeilen-Zusammenfassung lesen",copy:"Kopieren",share:"Teilen",readAloud:"Vorlesen",stop:"Stopp",copySummary:"Zusammenfassung kopieren",shareSummary:"Zusammenfassung teilen",match:"Übereinstimmung",verified:"Format verifiziert",unverified:"Format nicht verifiziert",getKnowledge:"Mehr erfahren",searching:"suche…"},
+  ja:{heroLine1:"アイデアを入力してください。",heroLine2:"誰がすでに出願しているか確認できます。",heroSub:"世界中の特許庁に出願された特許を検索し、あなたの言語で5行の要約を取得して読み上げてもらえます。",searchPlaceholder:"例：エッジデバイスでの連合学習",searchBtn:"特許を検索",tryLabel:"例：",resultsHeading:"世界の類似特許",filingTrend:"出願トレンド",whereFiled:"出願地域",countryLabel:"国で絞り込む",allCountries:"すべての国",readSummary:"5行要約を読む",copy:"コピー",share:"共有",readAloud:"読み上げ",stop:"停止",copySummary:"要約をコピー",shareSummary:"要約を共有",match:"一致度",verified:"形式確認済み",unverified:"形式未確認",getKnowledge:"詳しく知る",searching:"検索中…"},
+  ko:{heroLine1:"아이디어를 설명하세요.",heroLine2:"누가 이미 출원했는지 확인하세요.",heroSub:"전 세계 특허청에 출원된 특허를 검색하고, 원하는 언어로 5줄 요약을 받고, 음성으로 들어보세요.",searchPlaceholder:"예: 엣지 기기의 연합 학습",searchBtn:"특허 검색",tryLabel:"예시:",resultsHeading:"전 세계 유사 특허",filingTrend:"출원 추세",whereFiled:"출원 지역",countryLabel:"국가별 필터",allCountries:"모든 국가",readSummary:"5줄 요약 읽기",copy:"복사",share:"공유",readAloud:"소리 내어 읽기",stop:"정지",copySummary:"요약 복사",shareSummary:"요약 공유",match:"일치율",verified:"형식 확인됨",unverified:"형식 미확인",getKnowledge:"더 알아보기",searching:"검색 중…"},
+  zh:{heroLine1:"描述你的想法。",heroLine2:"看看谁已经申请过了。",heroSub:"搜索全球专利局提交的专利，获取五行语言摘要，并可朗读给你听。",searchPlaceholder:"例如：边缘设备上的联邦学习",searchBtn:"搜索专利",tryLabel:"试试：",resultsHeading:"全球相似专利",filingTrend:"申请趋势",whereFiled:"申请地区分布",countryLabel:"按国家筛选",allCountries:"所有国家",readSummary:"阅读五行摘要",copy:"复制",share:"分享",readAloud:"朗读",stop:"停止",copySummary:"复制摘要",shareSummary:"分享摘要",match:"匹配度",verified:"格式已验证",unverified:"格式未验证",getKnowledge:"了解更多",searching:"搜索中…"},
+  ar:{heroLine1:"صف فكرتك.",heroLine2:"تعرّف على من قدّمها من قبل.",heroSub:"ابحث في براءات الاختراع المودعة في مكاتب براءات الاختراع حول العالم، واحصل على ملخص من خمسة أسطر بلغتك، واستمع إليه.",searchPlaceholder:"مثال: التعلم الفدرالي على الأجهزة الطرفية",searchBtn:"البحث عن براءات الاختراع",tryLabel:"جرّب:",resultsHeading:"براءات اختراع مشابهة حول العالم",filingTrend:"اتجاه الإيداع",whereFiled:"أين يتم الإيداع",countryLabel:"تصفية حسب الدولة",allCountries:"كل الدول",readSummary:"قراءة ملخص من 5 أسطر",copy:"نسخ",share:"مشاركة",readAloud:"قراءة بصوت عالٍ",stop:"إيقاف",copySummary:"نسخ الملخص",shareSummary:"مشاركة الملخص",match:"تطابق",verified:"تنسيق موثّق",unverified:"تنسيق غير موثّق",getKnowledge:"معرفة المزيد",searching:"جارٍ البحث…"},
+  pt:{heroLine1:"Descreva a sua ideia.",heroLine2:"Veja quem já a registou.",heroSub:"Pesquise patentes depositadas em escritórios de todo o mundo, receba um resumo de cinco linhas no seu idioma e ouça-o.",searchPlaceholder:"ex.: aprendizagem federada em dispositivos edge",searchBtn:"Pesquisar patentes",tryLabel:"Experimente:",resultsHeading:"Patentes semelhantes no mundo",filingTrend:"Tendência de depósito",whereFiled:"Onde está a ser depositado",countryLabel:"Filtrar por país",allCountries:"Todos os países",readSummary:"Ler resumo de 5 linhas",copy:"Copiar",share:"Partilhar",readAloud:"Ler em voz alta",stop:"Parar",copySummary:"Copiar resumo",shareSummary:"Partilhar resumo",match:"correspondência",verified:"Formato verificado",unverified:"Formato não verificado",getKnowledge:"Saber mais",searching:"a pesquisar…"},
+  it:{heroLine1:"Descrivi la tua idea.",heroLine2:"Scopri chi l'ha già depositata.",heroSub:"Cerca brevetti depositati negli uffici di tutto il mondo, ottieni un riassunto in cinque righe nella tua lingua e ascoltalo.",searchPlaceholder:"es. apprendimento federato su dispositivi edge",searchBtn:"Cerca brevetti",tryLabel:"Prova:",resultsHeading:"Brevetti simili nel mondo",filingTrend:"Tendenza di deposito",whereFiled:"Dove viene depositato",countryLabel:"Filtra per paese",allCountries:"Tutti i paesi",readSummary:"Leggi il riassunto in 5 righe",copy:"Copia",share:"Condividi",readAloud:"Leggi ad alta voce",stop:"Ferma",copySummary:"Copia riassunto",shareSummary:"Condividi riassunto",match:"corrispondenza",verified:"Formato verificato",unverified:"Formato non verificato",getKnowledge:"Scopri di più",searching:"ricerca in corso…"},
+  ru:{heroLine1:"Опишите вашу идею.",heroLine2:"Узнайте, кто уже подал такую заявку.",heroSub:"Ищите патенты, поданные в патентные ведомства по всему миру, получайте резюме из пяти строк на вашем языке и прослушивайте его.",searchPlaceholder:"напр., федеративное обучение на edge-устройствах",searchBtn:"Искать патенты",tryLabel:"Попробуйте:",resultsHeading:"Похожие патенты в мире",filingTrend:"Динамика подачи заявок",whereFiled:"Где подаются заявки",countryLabel:"Фильтр по стране",allCountries:"Все страны",readSummary:"Читать резюме из 5 строк",copy:"Копировать",share:"Поделиться",readAloud:"Читать вслух",stop:"Стоп",copySummary:"Копировать резюме",shareSummary:"Поделиться резюме",match:"совпадение",verified:"Формат подтверждён",unverified:"Формат не подтверждён",getKnowledge:"Узнать больше",searching:"поиск…"}
+};
+function t(key){
+  const lang = state.profile ? state.profile.language : 'en';
+  return (UI_STRINGS[lang] && UI_STRINGS[lang][key]) || UI_STRINGS.en[key] || key;
+}
+
+function getFallbackSummary(patent, langCode, langName, topicQuery=''){
+  const topicText = topicQuery && topicQuery.trim() ? topicQuery : 'your topic';
+  const summaries = {
+    en: [
+      `This patent describes a practical ${patent.tags[0] || 'technology'} approach for real-world use.`,
+      `It focuses on improving efficiency, reliability, or user experience in a connected system.`,
+      `The filing shows a growing interest in this area across multiple jurisdictions.`,
+      `The idea is designed to support faster, safer, or more scalable deployment.`
+    ],
+    hi: [
+      `यह पेटेंट वास्तविक उपयोग के लिए एक व्यावहारिक ${patent.tags[0] || 'तकनीक'} दृष्टिकोण बताता है।`,
+      `यह जुड़े सिस्टम में दक्षता, विश्वसनीयता या उपयोगकर्ता अनुभव को बेहतर बनाने पर केंद्रित है।`,
+      `फाइलिंग कई क्षेत्रों में इस क्षेत्र में बढ़ती रुचि दिखाती है।`,
+      `यह विचार तेजी से, सुरक्षित या अधिक मापनीय तैनाती का समर्थन करने के लिए तैयार किया गया है।`
+    ],
+    es: [
+      `Esta patente describe un enfoque práctico de ${patent.tags[0] || 'tecnología'} para uso real.`,
+      `Se centra en mejorar la eficiencia, la fiabilidad o la experiencia del usuario en un sistema conectado.`,
+      `La presentación muestra un creciente interés en esta área en múltiples jurisdicciones.`,
+      `La idea está diseñada para apoyar un despliegue más rápido, seguro o escalable.`
+    ],
+    fr: [
+      `Ce brevet décrit une approche pratique de ${patent.tags[0] || 'technologie'} pour un usage réel.`,
+      `Il vise à améliorer l'efficacité, la fiabilité ou l'expérience utilisateur dans un système connecté.`,
+      `Le dépôt montre un intérêt croissant pour ce domaine dans plusieurs juridictions.`,
+      `L'idée est conçue pour permettre un déploiement plus rapide, plus sûr ou plus évolutif.`
+    ],
+    de: [
+      `Diese Patentanmeldung beschreibt einen praktischen ${patent.tags[0] || 'Technologie'}-Ansatz für den realen Einsatz.`,
+      `Sie konzentriert sich auf die Verbesserung von Effizienz, Zuverlässigkeit oder Nutzererfahrung in einem vernetzten System.`,
+      `Die Anmeldung zeigt ein wachsendes Interesse an diesem Bereich in mehreren Gerichtsbarkeiten.`,
+      `Die Idee ist darauf ausgelegt, einen schnelleren, sichereren oder skalierbareren Einsatz zu unterstützen.`
+    ],
+    ja: [
+      `この特許は、実際の利用に向けた実用的な${patent.tags[0] || '技術'}アプローチを説明しています。`,
+      `接続されたシステムにおける効率性、信頼性、ユーザー体験の向上に焦点を当てています。`,
+      `出願は、複数の管轄区域でこの分野への関心が高まっていることを示しています。`,
+      `このアイデアは、より迅速で安全かつ拡張しやすい展開を支えるよう設計されています。`
+    ],
+    ko: [
+      `이 특허는 실제 사용을 위한 실용적인 ${patent.tags[0] || '기술'} 접근 방식을 설명합니다.`,
+      `연결된 시스템에서 효율성, 신뢰성 또는 사용자 경험을 개선하는 데 초점을 맞춥니다.`,
+      `출원은 여러 관할 구역에서 이 분야에 대한 관심이 증가하고 있음을 보여줍니다.`,
+      `이 아이디어는 더 빠르고 안전하며 확장 가능한 배치를 지원하도록 설계되었습니다.`
+    ],
+    zh: [
+      `该专利描述了一种面向实际应用的实用${patent.tags[0] || '技术'}方案。`,
+      `它重点提升互联系统中的效率、可靠性或用户体验。`,
+      `该申请显示出多个司法管辖区对该领域兴趣正在增长。`,
+      `该想法旨在支持更快速、更安全或更可扩展的部署。`
+    ],
+    ar: [
+      `يصف هذا البراءة نهجًا عمليًا لـ ${patent.tags[0] || 'التكنولوجيا'} للاستخدام الواقعي.`,
+      `يركس على تحسين الكفاءة أو الموثوقية أو تجربة المستخدم في نظام مترابط.`,
+      `تُظهر الإيداع اهتمامًا متزايدًا بهذا المجال عبر العديد من الاختصاصات.`,
+      `تم تصميم الفكرة لدعم نشر أسرع أو أكثر أمانًا أو قابلية للتوسع.`
+    ],
+    pt: [
+      `Esta patente descreve uma abordagem prática de ${patent.tags[0] || 'tecnologia'} para uso real.`,
+      `Foca-se em melhorar a eficiência, a fiabilidade ou a experiência do utilizador num sistema conectado.`,
+      `O depósito mostra um interesse crescente nesta área em várias jurisdições.`,
+      `A ideia foi concebida para apoiar uma implementação mais rápida, segura ou escalável.`
+    ],
+    it: [
+      `Questa brevetto descrive un approccio pratico alla ${patent.tags[0] || 'tecnologia'} per l'uso reale.`,
+      `Si concentra sul miglioramento dell'efficienza, dell'affidabilità o dell'esperienza utente in un sistema connesso.`,
+      `La domanda mostra un crescente interesse per questo settore in più giurisdizioni.`,
+      `L'idea è stata concepita per supportare un'implementazione più rapida, sicura o scalabile.`
+    ],
+    ru: [
+      `Этот патент описывает практический подход к ${patent.tags[0] || 'технологии'} для реального применения.`,
+      `Он направлен на повышение эффективности, надёжности или пользовательского опыта в связанной системе.`,
+      `Заявка показывает растущий интерес к этой области в нескольких юрисдикциях.`,
+      `Идея разработана для поддержки более быстрого, безопасного или масштабируемого развертывания.`
+    ]
+  };
+  const lines = summaries[langCode] || (langCode === 'en' ? summaries.en : []);
+  const similarityLine = langCode === 'en'
+    ? `How it is similar to your topic: it relates to "${topicText}" through a related technical method.`
+    : langCode === 'hi'
+      ? `यह आपके विषय से कैसे मिलता-जुलता है: यह "${topicText}" से संबंधित तकनीकी तरीके से जुड़ा हुआ है।`
+      : langCode === 'es'
+        ? `Cómo se asemeja a tu tema: se relaciona con "${topicText}" mediante un método técnico parecido.`
+        : langCode === 'fr'
+          ? `En quoi il ressemble à votre sujet : il est lié à "${topicText}" par une méthode technique comparable.`
+          : langCode === 'de'
+            ? `Wie sie Ihrem Thema ähnelt: Sie bezieht sich auf "${topicText}" über eine verwandte technische Methode.`
+            : langCode === 'ja'
+              ? `あなたのテーマとの類似点: "${topicText}"に関連する技術的方法で結びついています。`
+              : langCode === 'ko'
+                ? `당신의 주제와 유사한 점: "${topicText}"와 관련된 기술 방식으로 연결됩니다.`
+                : langCode === 'zh'
+                  ? `它与你的主题有何相似之处：它通过相关技术方法与"${topicText}"相关。`
+                  : langCode === 'ar'
+                    ? `كيف يشبه موضوعك: يرتبط بـ "${topicText}" من خلال طريقة تقنية مشابهة.`
+                    : langCode === 'pt'
+                      ? `Como é semelhante ao seu tema: relaciona-se com "${topicText}" através de um método técnico semelhante.`
+                      : langCode === 'it'
+                        ? `In che modo è simile al tuo tema: è collegato a "${topicText}" attraverso un metodo tecnico simile.`
+                        : `Чем он похож на вашу тему: он связан с "${topicText}" через похожий технический метод.`;
+  return [...lines.slice(0, -1), similarityLine, lines[lines.length - 1]].join('\n');
+}
+
+// Larger pool of current-market technology topics the "Try:" chips are drawn from.
+// A real deployment would refresh this from an authoritative filings-trend feed (e.g. a
+// patent office's own filing-trend API) on a schedule; here we shuffle a curated pool so the
+// suggestions are not identical on every visit, and cache the day's pick so it's stable within a session.
+
+// its is try section
+const TOPICS = [
+  "federated learning on edge devices","neural network training method","TinyML sensor inference",
+  "edge AI accelerator chip","clustering algorithm anomaly detection","hierarchical clustering log analysis",
+  "NLP language translation model","speech recognition acoustic model","computer vision object detection",
+  "battery fast-charging system","solid-state battery electrolyte","perovskite solar cell",
+  "solar panel efficiency coating","water desalination membrane","hydrogen fuel cell stack",
+  "drone swarm navigation","autonomous vehicle LIDAR","wearable health monitor sensor",
+  "CRISPR gene editing method","mRNA vaccine delivery","3D printing metal alloy",
+  "quantum computing qubit control","blockchain supply chain tracking","5G antenna beamforming",
+  "wireless EV charging pad","facial recognition algorithm","robotic surgical arm",
+  "smart agriculture irrigation sensor","carbon capture filter material","biodegradable plastic polymer",
+  "underwater robotics propulsion","augmented reality display lens",
+  "humanoid robot balance control","large language model quantization","solid electrolyte lithium-sulfur cell",
+  "AI chip thermal management","synthetic biology enzyme design","direct air carbon capture",
+  "space debris removal system","satellite laser communication","brain-computer interface electrode",
+  "generative AI content watermarking","autonomous last-mile delivery robot","green hydrogen electrolyzer"
+];
+function pickTrendingChips(n){
+  const arr = TOPICS.slice();
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr.slice(0,n);
+}
+
+const PATENTS = [
+{id:'p1',category:'network',title:"Method for Federated Training of Neural Networks on Resource-Constrained Edge Devices",number:"US 11,842,207 B2",jurisdiction:'US',origLang:'en',assignee:"Solari Cognition Inc.",year:2024,tags:['federated learning','edge AI','neural network'],matchBase:88,trend:[6,9,14,19,27,34,41,38],abstract:"A distributed training framework enables multiple edge devices to collaboratively improve a shared neural network without transmitting raw sensor data to a central server. Each device computes local gradient updates on-device, compresses them using a quantization scheme, and periodically synchronizes with neighboring nodes over a low-bandwidth mesh link. A lightweight aggregation protocol weights each device's contribution according to its local data volume and hardware capability, reducing communication overhead by an order of magnitude compared to conventional federated averaging while preserving model accuracy across heterogeneous edge deployments."},
+{id:'p2',category:'network',title:"On-Device Clustering of Sensor Telemetry Using Lightweight K-Means Approximation",number:"WO 2025/041233 A1",jurisdiction:'WO',origLang:'en',assignee:"Northlight Systems B.V.",year:2025,tags:['clustering','edge inference','TinyML'],matchBase:85,trend:[4,6,9,13,18,22,29,31],abstract:"An on-device clustering method partitions streaming sensor telemetry into behavioral groups using an approximate K-means variant optimized for constrained memory budgets. Incoming readings are projected into a reduced-dimension feature space, and cluster centroids are updated incrementally as new samples arrive, avoiding the need to store historical data. An elbow-detection routine automatically selects the number of clusters at runtime, allowing the same firmware to adapt to different sensor types. The resulting cluster assignments flag anomalous readings locally, before any data leaves the device."},
+{id:'p16',category:'network',title:"Hierarchical Agglomerative Clustering Method for Real-Time Log Anomaly Grouping",number:"US 11,921,004 B2",jurisdiction:'US',origLang:'en',assignee:"Vertex Data Systems",year:2023,tags:['clustering','hierarchical clustering','anomaly detection'],matchBase:82,trend:[5,7,10,12,17,20,24,26],abstract:"A log-monitoring system applies an agglomerative clustering method to streaming system logs, merging related log lines into hierarchical groups based on token-level similarity distances. A dendrogram cut threshold is adjusted dynamically based on incoming log volume, allowing the system to surface newly emerging anomaly clusters within seconds of their first occurrence rather than waiting for a fixed batch window."},
+{id:'p12',category:'network',title:"Neural Machine Translation Model With Cross-Lingual Attention for Low-Resource Languages",number:"DE 10 2024 118 442 A1",jurisdiction:'DE',origLang:'de',assignee:"Sprachwerk AI GmbH",year:2024,tags:['NLP','translation','low-resource languages'],matchBase:80,trend:[3,5,8,11,15,19,23,25],abstract:"A neural machine translation model incorporates a cross-lingual attention mechanism that shares subword representations across a family of related languages, allowing translation quality for low-resource languages to benefit from training data available in higher-resource relatives. A language-adapter module inserted between transformer layers specializes the shared representation for each target language without retraining the full model, reducing the data volume required to add a new language pair."},
+{id:'p3',category:'battery',title:"Solid-State Battery Cell With Layered Ceramic Electrolyte for Rapid Charge Acceptance",number:"EP 4 187 622 A1",jurisdiction:'EP',origLang:'de',assignee:"Voltarum GmbH",year:2024,tags:['solid-state battery','fast charging','EV battery'],matchBase:90,trend:[8,11,16,22,30,37,45,49],abstract:"A solid-state battery cell incorporates a multilayer ceramic electrolyte structure positioned between a lithium metal anode and a high-nickel cathode. Alternating layers of differing ionic conductivity reduce dendrite formation at the electrode interface while maintaining a low-resistance pathway for lithium-ion transport during rapid charging. A compliant interlayer accommodates volumetric expansion during cycling, extending cell lifetime under repeated fast-charge conditions."},
+{id:'p4',category:'battery',title:"Wireless Inductive Charging Pad With Adaptive Coil Alignment for Electric Vehicles",number:"KR 10-2025-0033142",jurisdiction:'KR',origLang:'ko',assignee:"Hanbit Mobility Co., Ltd.",year:2025,tags:['wireless charging','EV','induction coil'],matchBase:78,trend:[3,5,7,10,14,17,21,24],abstract:"A wireless charging pad for electric vehicles includes an array of independently addressable induction coils and a position-sensing circuit that detects the vehicle's receiver coil alignment. Based on the detected offset, the system selectively activates the subset of coils nearest the receiver and adjusts phase and current to maintain consistent power transfer efficiency across a range of parking positions.",docUrl:'https://patents.google.com/patent/KR1020250033142'},
+{id:'p5',category:'solar',title:"Perovskite-Silicon Tandem Solar Cell With Anti-Reflective Nanotexture Coating",number:"CN 118 726 391 A",jurisdiction:'CN',origLang:'zh',assignee:"Jiuyang New Energy Co.",year:2025,tags:['solar cell','perovskite','energy efficiency'],matchBase:87,trend:[7,10,15,21,29,36,44,50],abstract:"A tandem photovoltaic cell stacks a perovskite absorber layer atop a crystalline silicon substrate, with an intermediate recombination layer tuned to match current output between the two sub-cells. The top surface carries a nanotextured anti-reflective coating that reduces front-surface reflection across a broad range of incident angles, capturing a wider portion of the solar spectrum than either material alone."},
+{id:'p6',category:'solar',title:"Self-Cleaning Photovoltaic Panel Surface Using Micro-Vibration Dust Displacement",number:"IN 452118",jurisdiction:'IN',origLang:'en',assignee:"Suryodaya Energy Pvt. Ltd.",year:2023,tags:['solar panel','self-cleaning','maintenance'],matchBase:74,trend:[2,4,6,8,11,14,17,19],abstract:"A photovoltaic panel assembly integrates a piezoelectric actuator layer beneath the glass surface that generates brief high-frequency micro-vibrations at scheduled intervals. The vibrations loosen accumulated dust without mechanical wiping components, allowing gravity and ambient airflow to clear the panel surface. A dust-density sensor triggers the cleaning cycle only when accumulation crosses a threshold."},
+{id:'p7',category:'water',title:"Graphene Oxide Membrane for Selective Ion Rejection in Desalination Systems",number:"US 11,998,450 B2",jurisdiction:'US',origLang:'en',assignee:"Clearwell Technologies",year:2024,tags:['desalination','membrane','water purification'],matchBase:83,trend:[4,6,9,13,17,21,26,28],abstract:"A composite membrane for desalination applications comprises a graphene oxide layer supported on a porous polymer substrate, with interlayer spacing tuned via controlled crosslinking to selectively reject monovalent and divalent ions while permitting water molecule passage. The membrane maintains rejection performance under sustained operating pressure and exhibits reduced fouling compared to conventional reverse-osmosis membranes."},
+{id:'p8',category:'drone',title:"Decentralized Swarm Navigation Method for Coordinated Multi-Drone Flight Paths",number:"EP 4 201 875 A1",jurisdiction:'EP',origLang:'fr',assignee:"Aeronoma SAS",year:2025,tags:['drone swarm','navigation','autonomous flight'],matchBase:86,trend:[5,8,12,17,23,29,35,39],abstract:"A swarm of unmanned aerial vehicles coordinates flight paths using a decentralized consensus protocol, where each drone shares position and intent vectors only with immediate neighbors rather than a central controller. A local collision-avoidance layer adjusts trajectories in real time, while a shared objective function guides the swarm toward coverage or formation goals, maintaining coordination even if individual drones lose network connectivity."},
+{id:'p15',category:'drone',title:"Underwater Propulsion System Using Biomimetic Fin Actuation for Autonomous Vehicles",number:"IN 468902",jurisdiction:'IN',origLang:'en',assignee:"Matsya Robotics Pvt. Ltd.",year:2025,tags:['underwater robotics','propulsion','biomimetics'],matchBase:76,trend:[2,3,5,7,10,13,16,18],abstract:"An autonomous underwater vehicle propulsion system uses a flexible fin actuated by embedded shape-memory alloy wires that contract in sequence to produce an oscillating motion resembling fish locomotion. The sequenced actuation pattern is adjustable in real time to shift between efficient cruising and higher-thrust maneuvering, reducing acoustic signature relative to propeller-based designs."},
+{id:'p9',category:'sensor',title:"Wearable Photoplethysmography Sensor Array With Motion Artifact Correction",number:"JP 2025-114032 A",jurisdiction:'JP',origLang:'ja',assignee:"Kaede Medical K.K.",year:2025,tags:['wearable sensor','health monitoring'],matchBase:81,trend:[4,6,9,12,16,20,25,27],abstract:"A wearable sensor array positions multiple photoplethysmography emitter-detector pairs around the wrist to capture blood volume pulse signals from different tissue depths and angles. A motion-artifact correction stage cross-references accelerometer data with the multi-channel optical signals to identify and subtract movement-induced noise, improving heart-rate estimation accuracy during physical activity."},
+{id:'p14',category:'sensor',title:"Millimeter-Wave Beamforming Antenna Array for 5G Small-Cell Base Stations",number:"CN 117 892 345 A",jurisdiction:'CN',origLang:'zh',assignee:"Feilong Telecom Ltd.",year:2023,tags:['5G','antenna','beamforming'],matchBase:79,trend:[3,5,8,10,14,17,20,22],abstract:"A millimeter-wave antenna array for small-cell base stations arranges phase-shifting elements in a sparse configuration that reduces the number of active RF chains needed to achieve a target beamforming resolution. A calibration routine compensates for manufacturing variance between elements, maintaining beam pointing accuracy across the temperature range typical of outdoor small-cell deployments."},
+{id:'p10',category:'medical',title:"CRISPR-Cas9 Guide RNA Delivery Vehicle Using Lipid Nanoparticle Encapsulation",number:"WO 2024/198221 A1",jurisdiction:'WO',origLang:'en',assignee:"Genavia Therapeutics",year:2024,tags:['gene editing','CRISPR','drug delivery'],matchBase:84,trend:[5,8,12,16,21,26,31,34],abstract:"A gene-editing delivery system encapsulates CRISPR-Cas9 guide RNA and Cas9 protein within a lipid nanoparticle formulated with an ionizable lipid component that facilitates endosomal escape after cellular uptake. The nanoparticle surface carries a targeting ligand that increases uptake selectivity for a specified tissue type, reducing off-target editing activity while maintaining editing efficiency at the intended genomic locus."},
+{id:'p11',category:'chip',title:"Superconducting Qubit Array With Tunable Coupling for Quantum Error Correction",number:"US 12,004,981 B2",jurisdiction:'US',origLang:'en',assignee:"Meridian Quantum Corp.",year:2025,tags:['quantum computing','qubit','error correction'],matchBase:88,trend:[3,5,7,11,15,20,26,30],abstract:"A superconducting quantum processor arranges qubits in a lattice where each qubit-qubit coupling is mediated by a tunable coupler element rather than a fixed capacitive link. Adjusting the coupler's flux bias varies the effective coupling strength between neighboring qubits, allowing two-qubit gate operations to be turned on only when needed, reducing unwanted crosstalk during idle periods."},
+{id:'p13',category:'network',title:"Blockchain-Based Provenance Ledger for Multi-Tier Supply Chain Verification",number:"KR 10-2024-0098213",jurisdiction:'KR',origLang:'ko',assignee:"Cheorwon Ledger Labs",year:2024,tags:['blockchain','supply chain','provenance'],matchBase:75,trend:[3,4,6,9,12,15,18,20],abstract:"A distributed ledger records custody events for goods moving through a multi-tier supply chain, with each participating party submitting a cryptographically signed attestation at handoff. A tiered validation scheme allows downstream parties to verify provenance claims without accessing upstream parties' full transaction history, preserving confidentiality while enabling end-to-end authenticity verification."}
+];
+
+let state = {
+  theme: 'dark',
+  device: 'desktop',
+  profile: null,
+  lastQuery: '',
+  lastResults: [],
+  summaryCache: {}, // key `${id}_${langCode}` -> text
+  openId: null,
+  speaking: null
+};
+
+// ---------- storage helpers ----------
+function storeGet(key){
+  try { return localStorage.getItem(key); } catch(e){ return null; }
+}
+function storeSet(key, value){
+  try { localStorage.setItem(key, value); } catch(e){}
+}
+
+function toast(msg){
+  const root = document.getElementById('toast-root');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  root.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 2400);
+}
+
+// ---------- figures (schematic SVGs, patent-drawing style) ----------
+function figureSVG(category){
+  const s = 'style="fill:none;stroke:var(--ink-dim);stroke-width:1.6;stroke-linecap:round"';
+  const cyan = 'style="fill:none;stroke:var(--cyan);stroke-width:1.8;stroke-linecap:round"';
+  const gold = 'style="fill:none;stroke:var(--gold);stroke-width:1.8;stroke-linecap:round"';
+  const T = {
+    network: `<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+      <g ${s}>
+        <line x1="30" y1="20" x2="70" y2="30"/><line x1="30" y1="50" x2="70" y2="30"/><line x1="30" y1="80" x2="70" y2="30"/>
+        <line x1="30" y1="20" x2="70" y2="50"/><line x1="30" y1="50" x2="70" y2="50"/><line x1="30" y1="80" x2="70" y2="50"/>
+        <line x1="30" y1="20" x2="70" y2="70"/><line x1="30" y1="50" x2="70" y2="70"/><line x1="30" y1="80" x2="70" y2="70"/>
+        <line x1="70" y1="30" x2="108" y2="42"/><line x1="70" y1="50" x2="108" y2="42"/><line x1="70" y1="70" x2="108" y2="58"/>
+        <line x1="70" y1="30" x2="108" y2="58"/><line x1="70" y1="50" x2="108" y2="58"/><line x1="70" y1="70" x2="108" y2="42"/>
+      </g>
+      <g ${cyan}><circle cx="30" cy="20" r="5"/><circle cx="30" cy="50" r="5"/><circle cx="30" cy="80" r="5"/></g>
+      <g ${s}><circle cx="70" cy="30" r="5"/><circle cx="70" cy="50" r="5"/><circle cx="70" cy="70" r="5"/></g>
+      <g ${gold}><circle cx="108" cy="42" r="5"/><circle cx="108" cy="58" r="5"/></g>
+    </svg>`,
+    battery: `<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+      <rect x="24" y="20" width="80" height="60" rx="4" ${s}/>
+      <rect x="104" y="38" width="8" height="24" rx="2" ${s}/>
+      <line x1="38" y1="20" x2="38" y2="80" ${cyan}/><line x1="52" y1="20" x2="52" y2="80" ${s}/>
+      <line x1="66" y1="20" x2="66" y2="80" ${gold}/><line x1="80" y1="20" x2="80" y2="80" ${s}/>
+      <text x="30" y="16" font-size="11" fill="var(--ink-faint)" font-family="monospace">+</text>
+      <text x="98" y="94" font-size="11" fill="var(--ink-faint)" font-family="monospace">−</text>
+      <line x1="42" y1="50" x2="62" y2="50" ${cyan}/><path d="M58 46 L62 50 L58 54" ${cyan}/>
+    </svg>`,
+    solar: `<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+      <g ${gold}><line x1="100" y1="16" x2="108" y2="10"/><line x1="110" y1="22" x2="118" y2="18"/><line x1="104" y1="28" x2="112" y2="30"/></g>
+      <circle cx="106" cy="20" r="7" ${gold}/>
+      <g ${s}>
+        <rect x="18" y="24" width="70" height="46" rx="2"/>
+        <line x1="41" y1="24" x2="41" y2="70"/><line x1="64" y1="24" x2="64" y2="70"/>
+        <line x1="18" y1="39" x2="88" y2="39"/><line x1="18" y1="54" x2="88" y2="54"/>
+      </g>
+      <line x1="53" y1="70" x2="53" y2="84" ${cyan}/>
+      <rect x="40" y="84" width="26" height="10" rx="2" ${cyan}/>
+    </svg>`,
+    sensor: `<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+      <rect x="52" y="40" width="36" height="26" rx="4" ${s}/>
+      <line x1="70" y1="40" x2="70" y2="22" ${s}/>
+      <path d="M96 53 a24 24 0 0 1 0 -1" ${cyan}/>
+      <path d="M104 53 a32 32 0 0 1 0 -1" ${cyan}/>
+      <path d="M112 53 a40 40 0 0 1 0 -1" ${gold}/>
+      <path d="M44 53 a24 24 0 0 0 0 -1" ${cyan}/>
+      <path d="M36 53 a32 32 0 0 0 0 -1" ${cyan}/>
+      <path d="M28 53 a40 40 0 0 0 0 -1" ${gold}/>
+    </svg>`,
+    drone: `<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+      <g ${s}>
+        <line x1="70" y1="50" x2="34" y2="30"/><line x1="70" y1="50" x2="106" y2="30"/>
+        <line x1="70" y1="50" x2="34" y2="70"/><line x1="70" y1="50" x2="106" y2="70"/>
+      </g>
+      <rect x="60" y="42" width="20" height="16" rx="3" ${gold}/>
+      <g ${cyan}><circle cx="34" cy="30" r="11"/><circle cx="106" cy="30" r="11"/><circle cx="34" cy="70" r="11"/><circle cx="106" cy="70" r="11"/></g>
+    </svg>`,
+    medical: `<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 10 C60 30 60 30 40 50 C20 70 20 70 40 90" ${cyan}/>
+      <path d="M100 10 C80 30 80 30 100 50 C120 70 120 70 100 90" ${gold}/>
+      <line x1="40" y1="20" x2="100" y2="20" ${s}/><line x1="46" y1="35" x2="94" y2="35" ${s}/>
+      <line x1="40" y1="50" x2="100" y2="50" ${s}/><line x1="46" y1="65" x2="94" y2="65" ${s}/>
+      <line x1="40" y1="80" x2="100" y2="80" ${s}/>
+    </svg>`,
+    water: `<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+      <rect x="58" y="14" width="20" height="72" ${s}/>
+      <path d="M14 30 q10 8 0 16 q-10 8 0 16 q10 8 0 16" ${cyan}/>
+      <path d="M30 30 q10 8 0 16 q-10 8 0 16 q10 8 0 16" ${cyan}/>
+      <path d="M92 30 L120 30 M92 50 L124 50 M92 70 L120 70" ${gold}/>
+      <circle cx="20" cy="70" r="2.4" ${s}/><circle cx="12" cy="46" r="2.4" ${s}/>
+    </svg>`,
+    chip: `<svg viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+      <g ${s} stroke-dasharray="3 3">
+        <line x1="34" y1="30" x2="70" y2="30"/><line x1="70" y1="30" x2="106" y2="30"/>
+        <line x1="34" y1="65" x2="70" y2="65"/><line x1="70" y1="65" x2="106" y2="65"/>
+        <line x1="34" y1="30" x2="34" y2="65"/><line x1="70" y1="30" x2="70" y2="65"/><line x1="106" y1="30" x2="106" y2="65"/>
+      </g>
+      <g ${cyan}><circle cx="34" cy="30" r="6"/><circle cx="106" cy="65" r="6"/></g>
+      <g ${gold}><circle cx="70" cy="30" r="6"/><circle cx="34" cy="65" r="6"/></g>
+      <g ${s}><circle cx="70" cy="65" r="6"/><circle cx="106" cy="30" r="6"/></g>
+    </svg>`
+  };
+  return T[category] || T.network;
+}
+
+function sparklineSVG(arr){
+  const w=80,h=24,max=Math.max(...arr),min=Math.min(...arr);
+  const pts = arr.map((v,i)=>{
+    const x = (i/(arr.length-1))*w;
+    const y = h - ((v-min)/(max-min||1))*h;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    <polyline points="${pts}" fill="none" stroke="var(--cyan)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+function scorePatent(p, qWords){
+  let score = 0;
+  const title = p.title.toLowerCase();
+  const tags = p.tags.join(' ').toLowerCase();
+  const abs = p.abstract.toLowerCase();
+  qWords.forEach(w=>{
+    if(!w) return;
+    if(title.includes(w)) score += 3;
+    if(tags.includes(w)) score += 2;
+    if(abs.includes(w)) score += 1;
+    if(p.category.includes(w)) score += 2;
+  });
+  return score;
+}
+
+function getPatentDocUrl(p){
+  if(p.docUrl) return p.docUrl;
+  const cleanNumber = (p.number || '').replace(/[^A-Za-z0-9]/g, '');
+  if(!cleanNumber) return 'https://worldwide.espacenet.com/';
+  return `https://worldwide.espacenet.com/searchResults?submitted=true&locale=en_EP&PN=${encodeURIComponent(cleanNumber)}`;
+}
+
+function runSearch(query){
+  state.lastQuery = query;
+  document.getElementById('landscape').classList.remove('hidden');
+  document.getElementById('resultsHead').classList.remove('hidden');
+  const grid = document.getElementById('resultsGrid');
+  grid.innerHTML = Array.from({length:4}).map(()=>`<div class="skel skel-card"></div>`).join('');
+  document.getElementById('landscape').innerHTML = `<div class="skel" style="height:150px;border-radius:14px;"></div>`;
+  document.getElementById('resultsCount').textContent = 'searching…';
+
+  setTimeout(()=>{
+    const qWords = query.toLowerCase().split(/\s+/).filter(Boolean);
+    let scored = PATENTS.map(p=>({p, s: scorePatent(p, qWords)}));
+    let matched = scored.filter(x=>x.s>0).sort((a,b)=>b.s-a.s);
+    let fallback = false;
+    if(matched.length===0){
+      fallback = true;
+      matched = scored.sort((a,b)=>b.p.year-a.p.year).slice(0,6);
+    }
+    const results = matched.map(x=>{
+      const bump = Math.min(x.s*2, 10);
+      const match = Math.max(62, Math.min(98, x.p.matchBase + (fallback? -8 : bump) - Math.floor(Math.random()*4)));
+      return Object.assign({}, x.p, {match});
+    });
+    state.lastResults = results;
+    renderLandscape(results, query, fallback);
+    renderResults(results, fallback);
+  }, 900);
+}
+
+function renderLandscape(results, query, fallback){
+  const box = document.getElementById('landscape');
+  const years = ['2018','2019','2020','2021','2022','2023','2024','2025'];
+  const top = results.slice(0,6);
+  const combined = years.map((y,i)=> top.reduce((sum,r)=>sum + r.trend[i], 0));
+  const max = Math.max(...combined,1);
+  const barW = 46, gap = 12, chartH = 120;
+  const bars = combined.map((v,i)=>{
+    const h = (v/max)*chartH;
+    const x = i*(barW+gap);
+    const yr = years[i].slice(2); /* Fixed ReferenceError here */
+    return `<rect x="${x}" y="${chartH-h}" width="${barW}" height="${h}" rx="4" fill="url(#lgrad)"/>
+      <text x="${x+barW/2}" y="${chartH+16}" text-anchor="middle" font-size="10" fill="var(--ink-faint)" font-family="monospace">'${yr}</text>`;
+  }).join('');
+
+  const jCounts = {};
+  results.forEach(r=>{ jCounts[r.jurisdiction] = (jCounts[r.jurisdiction]||0)+1; });
+  const total = results.length;
+  const jRows = Object.entries(jCounts).sort((a,b)=>b[1]-a[1]).map(([code,count])=>{
+    const pct = Math.round((count/total)*100);
+    return `<div class="juris-row">
+      <span class="jflag">${JFLAG[code]||'🌐'}</span><span class="jcode">${code}</span>
+      <div class="juris-bar-track"><div class="juris-bar-fill" style="width:${pct}%"></div></div>
+      <span class="juris-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+
+  box.innerHTML = `<div class="landscape-inner">
+    <div>
+      <p class="panel-title">Filing trend${query? ' — “'+escapeHtml(query)+'”':''}</p>
+      <p class="panel-sub">${fallback? 'No exact keyword match — showing related emerging-technology filings.' : 'Combined filings per year across the top matches, illustrative.'}</p>
+      <svg viewBox="0 0 ${8*(barW+gap)-gap} ${chartH+22}" style="width:100%;height:150px;">
+        <defs><linearGradient id="lgrad" x1="0" y1="1" x2="0" y2="0">
+          <stop offset="0%" stop-color="var(--cyan)"/><stop offset="100%" stop-color="var(--gold)"/>
+        </linearGradient></defs>
+        ${bars}
+      </svg>
+    </div>
+    <div>
+      <p class="panel-title">Where it's being filed</p>
+      <p class="panel-sub">Jurisdiction share among current results</p>
+      ${jRows}
+    </div>
+  </div>`;
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderResults(results, fallback){
+  document.getElementById('resultsCount').textContent = results.length + ' found';
+  const grid = document.getElementById('resultsGrid');
+  grid.innerHTML = '';
+  if(fallback){
+    const note = document.createElement('div');
+    note.className = 'empty-note';
+    note.textContent = "We couldn't find a close keyword match — here are related patents from adjacent, actively-filed technology areas.";
+    grid.appendChild(note);
+  }
+  results.forEach(p=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="card-main">
+        <div class="card-figure">${figureSVG(p.category)}</div>
+        <div class="card-body">
+          <div class="num">${p.number} · ${JFLAG[p.jurisdiction]||''} ${p.jurisdiction}</div>
+          <h3>${escapeHtml(p.title)}</h3>
+          <div class="card-meta">
+            <span>${escapeHtml(p.assignee)}</span><span>·</span><span>${p.year}</span>
+            ${p.origLang !== (state.profile? state.profile.language : 'en') ? `<span class="translated">Translated from ${ORIG_NAMES[p.origLang]}</span>` : ''}
+          </div>
+          <div class="tag-row">${p.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join('')}</div>
+        </div>
+        <div class="card-score">
+          <span class="score-num">${p.match}%</span>
+          <span class="score-label">match</span>
+          ${sparklineSVG(p.trend)}
+        </div>
+      </div>
+      <div class="card-actions">
+        <div class="btn primary" data-action="expand" data-id="${p.id}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+          Read 5-line summary
+        </div>
+        <div class="btn" data-action="copy" data-id="${p.id}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="1.5"/><path d="M5 15V5a1 1 0 0 1 1-1h10"/></svg>
+          Copy
+        </div>
+        <div class="btn" data-action="share" data-id="${p.id}">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><line x1="8.3" y1="10.7" x2="15.7" y2="6.3"/><line x1="8.3" y1="13.3" x2="15.7" y2="17.7"/></svg>
+          Share
+        </div>
+        <div class="btn doc" data-action="doc" data-id="${p.id}" data-url="${escapeHtml(getPatentDocUrl(p))}" title="Open patent documentation">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M15 6l6 6-6 6"/></svg>
+        </div>
+      </div>
+      <div class="detail-wrap" id="wrap-${p.id}">
+        <div class="detail-inner">
+          <div class="detail">
+            <div>
+              <div class="detail-figure">${figureSVG(p.category)}</div>
+              <p class="fig-caption">FIG. 1 — schematic</p>
+            </div>
+            <div>
+              <div class="summary-box loading" id="summary-${p.id}">Summarizing &amp; translating…</div>
+              <div class="card-actions" style="padding:12px 0 0;" id="detail-actions-${p.id}">
+                <div class="btn" data-action="readaloud" data-id="${p.id}">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 5V4L8 9H4Z"/><path d="M16 8a5 5 0 0 1 0 8"/></svg>
+                  <span class="btn-label">Read aloud</span>
+                </div>
+                <select class="speed-select" data-id="${p.id}">
+                  <option value="0.5">0.5x</option>
+                  <option value="0.75">0.75x</option>
+                  <option value="1" selected>1x — Normal</option>
+                  <option value="1.25">1.25x</option>
+                  <option value="1.5">1.5x</option>
+                  <option value="2">2x</option>
+                </select>
+                <div class="btn" data-action="copy-summary" data-id="${p.id}">Copy summary</div>
+                <div class="btn" data-action="share-summary" data-id="${p.id}">Share summary</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ---------- expand / summarize ----------
+async function toggleExpand(id){
+  const wrap = document.getElementById('wrap-'+id);
+  const isOpen = wrap.classList.contains('open');
+  if(isOpen){ wrap.classList.remove('open'); return; }
+  wrap.classList.add('open');
+  const langCode = state.profile ? state.profile.language : 'en';
+  const cacheKey = id + '_' + langCode;
+  const box = document.getElementById('summary-'+id);
+  if(state.summaryCache[cacheKey]){
+    renderSummary(box, state.summaryCache[cacheKey]);
+    return;
+  }
+  box.classList.add('loading');
+  box.textContent = 'Summarizing & translating…';
+  const patent = PATENTS.find(p=>p.id===id);
+  try{
+    const text = await summarize(patent, langCode, state.lastQuery);
+    state.summaryCache[cacheKey] = text;
+    renderSummary(box, text);
+  }catch(e){
+    box.classList.remove('loading');
+    box.innerHTML = '';
+  }
+}
+
+function renderSummary(box, text){
+  box.classList.remove('loading');
+  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+  box.innerHTML = lines.map(l=>{
+    const isSimilarity = /how it is similar|como se asemeja|en quoi il ressemble|wie sie .* ähnelt|あなたのテーマとの類似点|당신의 주제와 유사한 점|它与你的主题有何相似之处|كيف يشبه|como é semelhante|in che modo è simile|чем он похож/i.test(l);
+    return `<p class="ln"${isSimilarity ? ' style="margin-top:10px;font-weight:600;color:var(--gold);"' : ''}>${escapeHtml(l)}</p>`;
+  }).join('');
+}
+
+async function summarize(patent, langCode, topicQuery=''){
+  const langName = LANG_MAP[langCode] ? LANG_MAP[langCode].name : 'English';
+  const topicText = topicQuery && topicQuery.trim() ? topicQuery : 'the user\'s topic';
+  const prompt = `Summarize the following patent for a general, non-specialist reader. Patent title: "${patent.title}". Abstract: "${patent.abstract}"
+
+The user's topic is: "${topicText}".
+Rewrite this as exactly 5 to 6 short lines (each line one plain sentence, no bullet symbols, no numbering, no headers), written entirely in ${langName}. Include one line that clearly explains how the patent is similar to the user's topic, starting with "How it is similar to your topic:". Keep it technically accurate but easy to follow. Output ONLY the 5-6 lines of summary text, nothing else — no preamble, no notes.`;
+
+  const API_KEY = 'YOUR_ANTHROPIC_API_KEY'; // <-- replace with your real key
+
+  // Fallback mock behavior if API key is not configured, so the demo works smoothly!
+  if (API_KEY === 'YOUR_ANTHROPIC_API_KEY') {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(getFallbackSummary(patent, langCode, langName, topicQuery));
+        }, 1200);
+    });
+  }
+
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": API_KEY,
+      "anthropic-version": "2023-06-01"
+    },
+    body: JSON.stringify({
+      model: "claude-3-5-sonnet-20241022", // valid model ID
+      max_tokens: 1000,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  const data = await resp.json();
+  const text = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n').trim();
+  if(!text) throw new Error('empty');
+  return text;
+}
+
+// ---------- copy / share / speech ----------
+async function copyText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+    toast('Copied to clipboard');
+  }catch(e){
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); ta.remove();
+      toast('Copied to clipboard');
+    }catch(e2){ toast("Couldn't copy — try selecting the text manually"); }
+  }
+}
+
+async function shareText(title, text){
+  if(navigator.share){
+    try{ await navigator.share({title, text}); }
+    catch(e){ /* user cancelled — no toast needed */ }
+  } else {
+    await copyText(`${title}\n\n${text}`);
+    toast('Sharing not available here — copied instead');
+  }
+}
+
+function readAloud(id, text, btn){
+  if(!('speechSynthesis' in window)){
+    toast("This browser doesn't support read-aloud — try opening the file in a full browser tab");
+    return;
+  }
+  
+  const labelEl = btn.querySelector('.btn-label'); /* Fixed target query */
+  
+  if(state.speaking === id){
+    window.speechSynthesis.cancel();
+    state.speaking = null;
+    btn.classList.remove('playing');
+    if(labelEl) labelEl.textContent = 'Read aloud';
+    return;
+  }
+  window.speechSynthesis.cancel();
+  document.querySelectorAll('[data-action="readaloud"]').forEach(b=>{ 
+    b.classList.remove('playing'); 
+    const l = b.querySelector('.btn-label');
+    if(l) l.textContent = 'Read aloud'; 
+  });
+  
+  const langCode = state.profile ? state.profile.language : 'en';
+  const bcp = LANG_MAP[langCode] ? LANG_MAP[langCode].bcp : 'en-US';
+  const speedSel = document.querySelector(`.speed-select[data-id="${id}"]`);
+  const rate = speedSel ? parseFloat(speedSel.value) : 1;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = bcp; u.rate = rate;
+  u.onend = ()=>{ state.speaking=null; btn.classList.remove('playing'); if(labelEl) labelEl.textContent='Read aloud'; };
+  u.onerror = ()=>{ state.speaking=null; btn.classList.remove('playing'); if(labelEl) labelEl.textContent='Read aloud'; toast('Voice playback failed here'); };
+  state.speaking = id;
+  btn.classList.add('playing');
+  if(labelEl) labelEl.textContent = 'Stop';
+  window.speechSynthesis.speak(u);
+}
+
+// ---------- autocomplete ----------
+let acIndex = -1;
+function renderAutocomplete(query){
+  const box = document.getElementById('autocomplete');
+  if(!query){ box.classList.add('hidden'); box.innerHTML=''; acIndex=-1; return; }
+  const q = query.toLowerCase();
+  const matches = TOPICS.filter(t=>t.toLowerCase().includes(q)).slice(0,6);
+  if(matches.length===0){ box.classList.add('hidden'); box.innerHTML=''; return; }
+  box.innerHTML = matches.map((t,i)=>{
+    const idx = t.toLowerCase().indexOf(q);
+    const marked = idx>=0 ? t.slice(0,idx) + '<mark>' + t.slice(idx,idx+q.length) + '</mark>' + t.slice(idx+q.length) : t;
+    return `<div class="ac-item" data-i="${i}" data-val="${escapeHtml(t)}">${marked}</div>`;
+  }).join('');
+  box.classList.remove('hidden');
+  acIndex = -1;
+}
+
+// ---------- device / theme ----------
+function setDevice(mode){
+  state.device = mode;
+  const shell = document.getElementById('appShell');
+  shell.classList.toggle('mobile-frame', mode==='mobile');
+  document.getElementById('devDesktop').classList.toggle('active', mode==='desktop');
+  document.getElementById('devMobile').classList.toggle('active', mode==='mobile');
+}
+
+function setTheme(t){
+  state.theme = t;
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeIcon').innerHTML = t==='dark'
+    ? '<path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/>'
+    : '<circle cx="12" cy="12" r="5"/><path d="M12 2v2M12 20v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M2 12h2M20 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/>';
+  storeSet('theme', t);
+}
+
+// ---------- onboarding ----------
+function openOnboard(editMode){
+  document.getElementById('modalTitle').textContent = editMode ? 'Change your settings' : 'Set up your search';
+  document.getElementById('modalSub').textContent = editMode
+    ? "Update your name or the language summaries are translated and read aloud in."
+    : "Choose the language you'd like patent summaries translated and read aloud in. You can change this anytime.";
+  if(state.profile){
+    document.getElementById('nameInput').value = state.profile.name || '';
+    document.getElementById('langSelect').value = state.profile.language;
+  }
+  document.getElementById('onboardOverlay').classList.remove('hidden');
+}
+function closeOnboard(){ document.getElementById('onboardOverlay').classList.add('hidden'); }
+
+async function saveOnboard(){
+  const name = document.getElementById('nameInput').value.trim();
+  const language = document.getElementById('langSelect').value;
+  state.profile = { name, language };
+  await storeSet('profile', JSON.stringify(state.profile));
+  document.getElementById('langBadge').textContent = language.toUpperCase();
+  closeOnboard();
+  toast(name ? `Welcome, ${name} — summaries will show in ${LANG_MAP[language].name}` : `Summaries will show in ${LANG_MAP[language].name}`);
+  // re-render current results so translated-tag + cached-language summaries refresh
+  if(state.lastResults.length) renderResults(state.lastResults, false);
+}
+
+// ---------- init ----------
+async function init(){
+  document.getElementById('footYear').textContent = 'PatentLens AI — ' + new Date().getFullYear();
+
+  document.getElementById('langSelect').innerHTML = LANGS.map(l=>`<option value="${l.code}">${l.name}</option>`).join('');
+
+  const chipsEl = document.getElementById('chips');
+  ["solar cell coating","drone swarm navigation","battery fast charging","NLP translation model"].forEach(c=>{
+    const s = document.createElement('span');
+    s.className='chip'; s.textContent=c;
+    s.addEventListener('click', ()=>{ document.getElementById('searchInput').value=c; runSearch(c); });
+    chipsEl.appendChild(s);
+  });
+
+  const savedTheme = await storeGet('theme');
+  setTheme(savedTheme || 'dark');
+
+  const savedProfile = await storeGet('profile');
+  if(savedProfile){
+    state.profile = JSON.parse(savedProfile);
+    document.getElementById('langBadge').textContent = state.profile.language.toUpperCase();
+  } else {
+    openOnboard(false);
+  }
+
+  document.getElementById('devDesktop').addEventListener('click', ()=>setDevice('desktop'));
+  document.getElementById('devMobile').addEventListener('click', ()=>setDevice('mobile'));
+  document.getElementById('themeToggle').addEventListener('click', ()=>setTheme(state.theme==='dark'?'light':'dark'));
+  document.getElementById('langBadge').addEventListener('click', ()=>openOnboard(true));
+  document.getElementById('modalSave').addEventListener('click', saveOnboard);
+
+  const input = document.getElementById('searchInput');
+  input.addEventListener('input', ()=>renderAutocomplete(input.value));
+  input.addEventListener('keydown', (e)=>{
+    const box = document.getElementById('autocomplete');
+    const items = Array.from(box.querySelectorAll('.ac-item'));
+    if(e.key==='ArrowDown'){ e.preventDefault(); acIndex=Math.min(acIndex+1, items.length-1); items.forEach((it,i)=>it.classList.toggle('hi', i===acIndex)); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); acIndex=Math.max(acIndex-1,0); items.forEach((it,i)=>it.classList.toggle('hi', i===acIndex)); }
+    else if(e.key==='Enter'){
+      if(acIndex>=0 && items[acIndex]){ input.value = items[acIndex].dataset.val; }
+      box.classList.add('hidden');
+      runSearch(input.value.trim());
+    } else if(e.key==='Escape'){ box.classList.add('hidden'); }
+  });
+  document.getElementById('autocomplete').addEventListener('mousedown', (e)=>{
+    const item = e.target.closest('.ac-item');
+    if(!item) return;
+    input.value = item.dataset.val;
+    document.getElementById('autocomplete').classList.add('hidden');
+    runSearch(input.value.trim());
+  });
+  document.addEventListener('click', (e)=>{
+    if(!e.target.closest('.search-wrap')) document.getElementById('autocomplete').classList.add('hidden');
+  });
+  document.getElementById('searchBtn').addEventListener('click', ()=>{
+    document.getElementById('autocomplete').classList.add('hidden');
+    runSearch(input.value.trim());
+  });
+
+  document.getElementById('resultsGrid').addEventListener('click', async (e)=>{
+    const btn = e.target.closest('[data-action]');
+    if(!btn) return;
+    const id = btn.dataset.id;
+    const patent = PATENTS.find(p=>p.id===id);
+    const action = btn.dataset.action;
+    if(action==='expand'){ toggleExpand(id); }
+    else if(action==='copy'){ copyText(`${patent.title} (${patent.number})\n\n${patent.abstract}`); }
+    else if(action==='share'){ shareText(patent.title, `${patent.number} — ${patent.title}`); }
+    else if(action==='readaloud'){
+      const langCode = state.profile ? state.profile.language : 'en';
+      const cacheKey = id + '_' + langCode;
+      const text = state.summaryCache[cacheKey] || patent.abstract;
+      readAloud(id, text, btn);
+    }
+    else if(action==='copy-summary'){
+      const langCode = state.profile ? state.profile.language : 'en';
+      const text = state.summaryCache[id+'_'+langCode] || patent.abstract;
+      copyText(text);
+    }
+    else if(action==='share-summary'){
+      const langCode = state.profile ? state.profile.language : 'en';
+      const text = state.summaryCache[id+'_'+langCode] || patent.abstract;
+      shareText(patent.title, text);
+    }
+    else if(action==='doc'){
+      const url = btn.dataset.url;
+      if(url) window.open(url, '_blank');
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>
