@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patent Atlas | Research Search</title>
+    <link rel="stylesheet" href="style.css">
+     <link rel=""backend" href="Patent_search_full_without_error.ipynb">
+</head>
+
+<body>
+
+    <header>
+        <div class="nav">
+            <div class="brand">
+                <span class="brand-mark">P</span> Patent Atlas
+            </div>
+
+            <nav>
+                <a href="#results">Explore research</a>
+                <a href="#about">About the index</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="nav">
+            <div>
+
+                <h1>Find the ideas shaping tomorrow.</h1>
+
+                <p>
+                    Search across a curated collection of patents,
+                    inventions, and technical research from around the world.
+                </p>
+
+                <form class="search-wrap" id="searchForm">
+
+                    <span class="search-icon">⌕</span>
+
+                    <input
+                        id="searchInput"
+                        type="search"
+                        placeholder="Search by title, inventor, or technology..."
+                        autocomplete="off"
+                    >
+
+                    <button
+                        class="search-button"
+                        type="submit">
+                        Search
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+    </section>
+
+    <main id="results">
+
+        <div class="toolbar">
+
+            <div>
+                <h2>Research library</h2>
+                <p id="resultCount">
+                    Showing 6 published records
+                </p>
+            </div>
+
+            <select
+                class="sort"
+                id="sortSelect"
+                aria-label="Sort results">
+
+                <option value="newest">
+                    Sort: Newest first
+                </option>
+
+                <option value="oldest">
+                    Sort: Oldest first
+                </option>
+
+                <option value="title">
+                    Sort: Title A-Z
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="layout">
+
+            <aside class="filters">
+
+                <h3>Refine results</h3>
+
+                <div class="filter-group">
+
+                    <strong>Technology</strong>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            value="Energy">
+                        Clean energy
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            value="AI">
+                        Artificial intelligence
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            value="Health">
+                        Health tech
+                    </label>
+
+                </div>
+
+                <div class="filter-group">
+
+                    <strong>Status</strong>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            value="Granted">
+                        Granted
+                    </label>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            value="Pending">
+                        Pending
+                    </label>
+
+                </div>
+
+            </aside>
+
+            <section
+                class="result-list"
+                id="resultList"
+                aria-live="polite">
+            </section>
+
+            <div
+                class="empty"
+                id="emptyState">
+
+                <strong>No research found</strong>
+
+                Try a different keyword or clear your filters.
+
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>

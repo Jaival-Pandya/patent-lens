@@ -1,0 +1,213 @@
+/* =========================
+   RESET
+========================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* =========================
+   BODY
+========================= */
+
+body {
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: radial-gradient(
+        circle at 50% 0%,
+        #302052 0%,
+        #100c1d 45%,
+        #05040b 100%
+    );
+    color: white;
+}
+
+/* =========================
+   BACKGROUND CONTENT
+========================= */
+
+.background-content {
+    padding: 70px 80px;
+    filter: blur(4px);
+    opacity: 0.35;
+}
+
+.background-content h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+.background-content p {
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+/* =========================
+   DARK OVERLAY
+========================= */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* =========================
+   MODAL CARD
+========================= */
+
+.modal {
+    width: 515px;
+    background: #171329;
+    border: 1px solid #34255a;
+    border-radius: 20px;
+    padding: 38px;
+    box-shadow:
+        0 0 60px rgba(120, 80, 255, 0.20),
+        0 25px 70px rgba(0, 0, 0, 0.60);
+}
+
+/* =========================
+   HEADING
+========================= */
+
+.modal h1 {
+    font-family: Georgia, serif;
+    font-size: 30px;
+    color: #f5f2ff;
+    margin-bottom: 12px;
+}
+
+/* =========================
+   DESCRIPTION
+========================= */
+
+.description {
+    color: #aaa3c2;
+    font-size: 17px;
+    line-height: 1.55;
+    margin-bottom: 30px;
+}
+
+/* =========================
+   LABEL
+========================= */
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #81789f;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* =========================
+   INPUT + SELECT
+========================= */
+
+input,
+select {
+    width: 100%;
+    height: 53px;
+    padding: 0 15px;
+    margin-bottom: 22px;
+    border: 1px solid #342952;
+    border-radius: 12px;
+    background: #1d1734;
+    color: #eeeeee;
+    font-size: 16px;
+    outline: none;
+}
+
+/* =========================
+   PLACEHOLDER
+========================= */
+
+input::placeholder {
+    color: #9189a7;
+}
+
+/* =========================
+   FOCUS EFFECT
+========================= */
+
+input:focus,
+select:focus {
+    border-color: #8b63ff;
+    box-shadow: 0 0 0 3px rgba(139, 99, 255, 0.12);
+}
+
+/* =========================
+   SELECT
+========================= */
+
+select {
+    cursor: pointer;
+}
+
+/* =========================
+   BUTTON
+========================= */
+
+button {
+    width: 100%;
+    height: 56px;
+    border: none;
+    border-radius: 12px;
+    background: #8b63f6;
+    color: #08060d;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+/* =========================
+   BUTTON HOVER
+========================= */
+
+button:hover {
+    background: #9b78ff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(139, 99, 246, 0.35);
+}
+
+/* =========================
+   BOTTOM TEXT
+========================= */
+
+.saved-text {
+    text-align: center;
+    margin-top: 10px;
+    color: #9b93b4;
+    font-size: 16px;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+    .modal {
+        width: 100%;
+        padding: 28px;
+    }
+
+    .modal h1 {
+        font-size: 26px;
+    }
+
+    .description {
+        font-size: 15px;
+    }
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title> patent Lens login page</title>
+        <link rel="stylesheet" href="style.css">
+        <link rel="backend" href="app.py">
+        <script src="index.js" defer></script>
+    </head>
+    <body>
+        <section class ="header">
+            <h1> Describe your idea. <br>See who else has filed it.</h1><br>
+            <p>Search patents filed across the world's patent offices, get a five-line answer in your languageto you.</p>
+        </section>
+
+        <section class="search">
+            <form class="search-wrap" id="searchForm">
+                <h3><img src="search imae.png" width="20" height="20" alt="Search"></h3>
+                <input id="searchInput" name="query" type="search" placeholder="Search by title, inventor, or technology..." autocomplete="off" required>
+
+                <label for="language">Choose your preferred language:</label>
+
+                <select id="language" name="language">
+                    <option value="en">English</option>
+                    <option value="hi">Hindi</option>
+                    <option value="gu">Gujarati</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="zh">Chinese</option>
+                    <option value="other">Other</option>
+                </select>
+
+                <input id="otherLanguage" name="otherLanguage" type="text" placeholder="Enter your preferred language" hidden>
+
+                <button type="submit">Start Search</button>
+            </form>
+        </section>
+
+        <section class="results">
+            <h2>Search Results</h2>
+            <div id="resultsContainer"></div>
+
+        </section>
+
+    </body>
+</html>
